@@ -1,0 +1,76 @@
+auth_enabled: false
+
+server:
+    http_listen_port: 3100
+    grpc_server_max_recv_msg_size: 104857600  # 100 Mb
+    grpc_server_max_send_msg_size: 104857600  # 100 Mb
+    http_server_write_timeout: 310s
+    http_server_read_timeout: 310s
+
+common:
+    path_prefix: /data/loki
+    storage:
+        filesystem:
+            chunks_directory: /data/loki/chunks
+            rules_directory: /data/loki/rules
+    replication_factor: 1
+    ring:
+        kvstore:
+            store: inmemory
+
+schema_config:
+    configs:
+        - from: 2020-10-24
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+          index:
+              prefix: index_
+              period: 24h
+
+ruler:
+    alertmanager_url: http://localhost:9093
+
+ingester_client:
+    grpc_client_config:
+        max_recv_msg_size: 104857600  # 100 Mb
+        max_send_msg_size: 104857600  # 100 Mb
+
+ingester:
+    chunk_encoding: snappy
+
+querier:
+    query_timeout: 300s
+    engine:
+        timeout: 300s
+    max_concurrent: 8
+
+
+limits_config:
+    max_query_parallelism: 24
+    split_queries_by_interval: 15m
+    ingestion_rate_mb: 100
+    ingestion_burst_size_mb: 300
+    per_stream_rate_limit: "30MB"
+    per_stream_rate_limit_burst: "50MB"
+    max_global_streams_per_user: 100000
+
+frontend_worker:
+    match_max_concurrent: true
+
+table_manager:
+    retention_deletes_enabled: true
+    retention_period: 168h
+
+# By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
+# analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
+#
+# Statistics help us better understand how Loki is used, and they show us performance
+# levels for most users. This helps us prioritize features and documentation.
+# For more information on what's sent, look at
+# https://github.com/grafana/loki/blob/main/pkg/usagestats/stats.go
+# Refer to the buildReport method to see what goes into a report.
+#
+# If you would like to disable reporting, uncomment the following lines:
+analytics:
+    reporting_enabled: false

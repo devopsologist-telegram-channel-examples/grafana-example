@@ -5,12 +5,16 @@ services:
         depends_on:
             db:
                 condition: service_healthy
+            loki:
+                condition: service_healthy
         restart: always
         environment:
+            - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
             - GF_SERVER_ROOT_URL=https://grafana.example.com/
         volumes:
             - grafana_storage:/var/lib/grafana
             - ./grafana.ini:/etc/grafana/grafana.ini:ro
+            - ./datasources:/etc/grafana/provisioning/datasources:ro
         networks:
             - traefik-public
             - default
@@ -38,9 +42,26 @@ services:
         volumes:
             - postgres:/var/lib/postgresql/data:delegated
 
+    loki:
+        build:
+            context: .
+        restart: always
+        healthcheck:
+            test: curl -f http://127.0.0.1:3100/ready
+            interval: 5s
+            timeout: 5s
+            retries: 30
+        command: -config.file=/etc/loki/loki.yaml
+        environment:
+            - TZ=Europe/Moscow
+        volumes:
+            - loki:/data/loki
+            - ./loki.yaml:/etc/loki/loki.yaml:ro
+
 volumes:
     grafana_storage: null
     postgres: null
+    loki: null
 
 networks:
     traefik-public:

@@ -4,8 +4,10 @@ deploy:
     stage: deploy
     script:
         - ssh -p 1234 gitlab-deploy@example.com "mkdir -p /home/gitlab-deploy/grafana"
+        - ssh -p 1234 gitlab-deploy@example.com "mkdir -p /home/gitlab-deploy/grafana/datasources"
         - sed -i "s/#POSTGRES_GRAFANA_PASSWORD#/${POSTGRES_GRAFANA_PASSWORD}/" grafana.ini
-        - scp -P 1234 docker-compose.yaml grafana.ini gitlab-deploy@example.com:/home/gitlab-deploy/grafana
+        - scp -P 1234 docker-compose.yaml Dockerfile grafana.ini loki.yaml gitlab-deploy@example.com:/home/gitlab-deploy/grafana
+        - scp -P 1234 datasources/datasource-loki.yaml gitlab-deploy@example.com:/home/gitlab-deploy/grafana/datasources
         - ssh -p 1234 gitlab-deploy@example.com "cd /home/gitlab-deploy/grafana && POSTGRES_GRAFANA_PASSWORD=${POSTGRES_GRAFANA_PASSWORD} docker compose -p grafana pull"
         - ssh -p 1234 gitlab-deploy@example.com "cd /home/gitlab-deploy/grafana && POSTGRES_GRAFANA_PASSWORD=${POSTGRES_GRAFANA_PASSWORD} docker compose -p grafana down || true"
         - ssh -p 1234 gitlab-deploy@example.com "cd /home/gitlab-deploy/grafana && POSTGRES_GRAFANA_PASSWORD=${POSTGRES_GRAFANA_PASSWORD} docker compose -p grafana up -d"
