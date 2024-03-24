@@ -52,6 +52,8 @@ services:
             timeout: 5s
             retries: 30
         command: -config.file=/etc/loki/loki.yaml
+        ports:
+            - '127.0.0.1:3100:3100'
         environment:
             - TZ=Europe/Moscow
         volumes:
